@@ -5,3 +5,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# env variables
+.env
+
+# Local models
+/local_models

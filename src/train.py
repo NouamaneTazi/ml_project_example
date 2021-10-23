@@ -49,7 +49,7 @@ def run(fold, model):
     print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
     # save the model
     joblib.dump(clf, os.path.join(config.MODEL_OUTPUT,
-                f"{model}_{fold}_{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
+                f"{model}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
 
 
 if __name__ == "__main__":
