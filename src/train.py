@@ -9,6 +9,31 @@ import pandas as pd
 from sklearn import metrics
 from sklearn import tree
 from sklearn.impute import SimpleImputer
+import preprocessing
+
+
+def preprocess(x_train, x_valid, model):
+    """
+    This function is used for feature engineering
+    :param df: the pandas dataframe with train/test data
+    :param model: the model configuration
+    :return: dataframe with new features
+    """
+    pre_pipeline = preprocessing.preprocessing_pipeline()
+
+    # drops kfold column because it's not used in preprocessing
+    kfold_col = df['kfold']
+    df = df.drop(columns="kfold")
+
+    initial_cols = list(df.columns)
+    # TODO: find added columnns automatically from pipeline
+    added_cols = ['Solids_log']
+    # Preprocess data (returns numpy array)
+    arr = pre_pipeline.fit_transform(df)
+
+    df = pd.DataFrame(arr, columns=initial_cols + added_cols)
+    df['kfold'] = kfold_col
+    return df
 
 
 def run(fold, model):
