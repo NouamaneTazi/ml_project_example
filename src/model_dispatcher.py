@@ -1,4 +1,5 @@
 from sklearn import tree, ensemble
+import xgboost as xgb
 
 models = {
     "dt_gini": tree.DecisionTreeClassifier(
@@ -11,4 +12,8 @@ models = {
     ),
     "rf": ensemble.RandomForestClassifier(n_jobs=-1,
                                           random_state=42),
+    "xgb": xgb.XGBClassifier(
+        n_jobs=-1,
+        random_state=42
+    )
 }
