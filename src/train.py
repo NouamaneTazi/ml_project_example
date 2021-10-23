@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn import metrics
 from sklearn import tree
 from sklearn.impute import SimpleImputer
-import preprocessing
+from preprocessing import preprocessing_pipeline
 
 
 def preprocess(x_train, x_valid, model):
@@ -19,31 +19,24 @@ def preprocess(x_train, x_valid, model):
     :param model: the model configuration
     :return: dataframe with new features
     """
-    pre_pipeline = preprocessing.preprocessing_pipeline()
+    pre_pipeline = preprocessing_pipeline(
+    )  # TODO use config to handle pipeline params
 
-    # drops kfold column because it's not used in preprocessing
-    kfold_col = df['kfold']
-    df = df.drop(columns="kfold")
+    x_train = pre_pipeline.fit_transform(x_train)
+    x_valid = pre_pipeline.transform(x_valid)
 
-    initial_cols = list(df.columns)
-    # TODO: find added columnns automatically from pipeline
-    added_cols = ['Solids_log']
-    # Preprocess data (returns numpy array)
-    arr = pre_pipeline.fit_transform(df)
-
-    df = pd.DataFrame(arr, columns=initial_cols + added_cols)
-    df['kfold'] = kfold_col
-    return df
+    return x_train, x_valid
 
 
 def run(fold, model):
+    """
+    Fits :model: on the rest of folds, and validates on the fold :fold:.
+    It also saves the trained model.
+    :param fold: the fold id used for validation
+    :param model: the model configuration
+    """
     # read the training data with folds
     df = pd.read_csv(config.TRAINING_FILE)
-
-    # handle missing data
-    # fill all missing data with -1 and let decision tree handle it
-    imp_constant = SimpleImputer(strategy='constant', fill_value=-1)
-    df = pd.DataFrame(imp_constant.fit_transform(df), columns=df.columns)
 
     # training data is where kfold is not equal to provided fold
     df_train = df[df.kfold != fold].reset_index(drop=True)
@@ -53,11 +46,14 @@ def run(fold, model):
     # drop the Potability column from dataframe and convert it to
     # a numpy array by using .values.
     # target is Potability column in the dataframe
-    x_train = df_train.drop("Potability", axis=1).values
+    x_train = df_train.drop(["Potability", "kfold"], axis=1).values
     y_train = df_train.Potability.values
     # similarly, for validation, we have
-    x_valid = df_valid.drop("Potability", axis=1).values
+    x_valid = df_valid.drop(["Potability", "kfold"], axis=1).values
     y_valid = df_valid.Potability.values
+
+    # Preprocess data
+    x_train, x_valid = preprocess(x_train, x_valid, model)
 
     # fetch the model from model_dispatcher
     clf = model_dispatcher.models[model]

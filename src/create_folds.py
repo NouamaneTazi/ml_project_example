@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn import model_selection
 
+# TODO: create a separate csv for test
 if __name__ == "__main__":
     # Read training data
     df = pd.read_csv("./input/drinking_water_potability.csv")
