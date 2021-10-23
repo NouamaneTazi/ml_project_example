@@ -1,13 +1,14 @@
 import os
 import config
 import model_dispatcher
-
+import time
 import joblib
+import argparse
+
 import pandas as pd
 from sklearn import metrics
 from sklearn import tree
 from sklearn.impute import SimpleImputer
-import argparse
 
 
 def run(fold, model):
@@ -46,7 +47,8 @@ def run(fold, model):
     accuracy = metrics.accuracy_score(y_valid, valid_preds)
     print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
     # save the model
-    joblib.dump(clf, os.path.join(config.MODEL_OUTPUT, f"dt_{fold}.bin"))
+    joblib.dump(clf, os.path.join(config.MODEL_OUTPUT,
+                f"{model}_{fold}_{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
 
 
 if __name__ == "__main__":
