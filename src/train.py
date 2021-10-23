@@ -41,10 +41,11 @@ def run(fold, model):
     clf.fit(x_train, y_train)
     # create predictions for validation samples
     valid_preds = clf.predict(x_valid)
-
+    valid_probs = clf.predict_proba(x_valid)
     # get roc auc and accuracy score
-    auc = metrics.roc_auc_score(df_valid.Potability.values, valid_preds)
     accuracy = metrics.accuracy_score(y_valid, valid_preds)
+    auc = metrics.roc_auc_score(
+        df_valid.Potability.values, valid_probs[:, 1])
     print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
     # save the model
     joblib.dump(clf, os.path.join(config.MODEL_OUTPUT,
@@ -56,11 +57,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--fold",
-        type=int
+        type=int,
+        default=0
     )
     parser.add_argument(
         "--model",
-        type=str
+        type=str,
+        default="rf"
     )
     args = parser.parse_args()
     run(fold=args.fold, model=args.model)
