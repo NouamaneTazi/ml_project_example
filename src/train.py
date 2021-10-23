@@ -1,3 +1,6 @@
+import os
+import config
+
 import joblib
 import pandas as pd
 from sklearn import metrics
@@ -7,7 +10,7 @@ from sklearn.impute import SimpleImputer
 
 def run(fold):
     # read the training data with folds
-    df = pd.read_csv("input/dri_wat_pot_folds.csv")
+    df = pd.read_csv(config.TRAINING_FILE)
 
     # handle missing data
     # fill all missing data with -1 and let decision tree handle it
@@ -40,7 +43,7 @@ def run(fold):
     accuracy = metrics.accuracy_score(y_valid, valid_preds)
     print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
     # save the model
-    joblib.dump(clf, f"models/dt_{fold}.bin")
+    joblib.dump(clf, os.path.join(config.MODEL_OUTPUT, f"dt_{fold}.bin"))
 
 
 if __name__ == "__main__":
