@@ -1,35 +1,12 @@
-from sklearn import preprocessing
 import pandas as pd
 import numpy as np
 
-# Preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, PolynomialFeatures
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import IterativeImputer, KNNImputer, SimpleImputer
-
-
-def add_polynomial(df):
-    # initialize polynomial features class object
-    # for two-degree polynomial features
-    pf = preprocessing.PolynomialFeatures(
-        degree=2,
-        interaction_only=False,
-        include_bias=False
-    )
-    # fit to the features
-    pf.fit(df)
-    # create polynomial features
-    poly_feats = pf.transform(df)
-    # create a dataframe with all the features
-    num_feats = poly_feats.shape[1]
-    df_transformed = pd.DataFrame(
-        poly_feats,
-        columns=[f"f_{i}" for i in range(1, num_feats + 1)]
-    )
-    return df
 
 
 class RemoveNull(BaseEstimator, TransformerMixin):
@@ -42,11 +19,13 @@ class RemoveNull(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        return X.dropna(axis=self.direction)
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+        return X[~np.isnan(X).any(axis=self.direction)]
 
 
-class AttributesAdder(BaseEstimator, TransformerMixin):
-    '''Defines a transformer to add custom features'''
+class SolidsLogAdder(BaseEstimator, TransformerMixin):
+    '''Defines a transformer to add Solids log feature'''
 
     solids_ix = 2
 
@@ -65,8 +44,31 @@ class AttributesAdder(BaseEstimator, TransformerMixin):
         else:
             return X
 
+class PolyFeaturesAdder(BaseEstimator, TransformerMixin):
+    '''Defines a transformer to add the features squared'''
 
-def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=True):
+    def __init__(self, degree=1):
+        self.degree = degree
+        
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+        if self.degree > 1:
+            pf = PolynomialFeatures(
+                degree=self.degree,
+                interaction_only=False,
+                include_bias=False
+            )
+            poly_feats = pf.fit_transform(X)
+            return np.concatenate((X, poly_feats), axis=1)
+        else:
+            return X
+
+def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=True, poly_degree=1):
     """
     This function's goal is to build a preprocessing pipeline with given preprocessing strategy.
 
@@ -78,6 +80,12 @@ def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=
     scaling : string
         Specify the strategy for dealing with the scaling (default is "standard")
         Possible values: "standard", "min_max"
+    add_Solids_log: boolean (default is True)
+        Add log of solid feature
+        Possible values: True, False
+    add_poly_features: int (default is 1)
+        Add polynoms of features with the indicated degree
+        Possible values: 1 (nothing is added), 2, 3...
 
     Returns
     -------
@@ -96,7 +104,8 @@ def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=
         missing_imputer = KNNImputer()
 
     # Added attributes
-    attr_adder = AttributesAdder(add_Solids_log=add_Solids_log)
+    solid_logs_adder = SolidsLogAdder(add_Solids_log=add_Solids_log)
+    poly_features_adder = PolyFeaturesAdder(degree=poly_degree)
 
     # Scaling
     if scaling == "standard":
@@ -106,6 +115,7 @@ def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=
 
     return Pipeline([
         ('missing', missing_imputer),
-        ('attribs_adder', attr_adder),
+        ('solid_logs_adder', solid_logs_adder),
+        ('sq_features_adder', poly_features_adder),
         ('scaling', scaler)
     ])
