@@ -1,6 +1,6 @@
+import config
 import pandas as pd
 from sklearn import model_selection
-
 # TODO: create a separate csv for test
 if __name__ == "__main__":
     # Read training data
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # initiate the kfold class from model_selection module
     # we use StratifiedKFold to keep the same % of targets per fold
     # (because of skewed targets)
-    kf = model_selection.StratifiedKFold(n_splits=5)
+    kf = model_selection.StratifiedKFold(n_splits=config.NUMBER_FOLDS)
 
     # fill the new kfold column
     for f, (t_, v_) in enumerate(kf.split(X=df, y=y)):

@@ -97,7 +97,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--fold",
         type=int,
-        default=0
+        default=-1
     )
     parser.add_argument(
         "--model",
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print()
     if args.fold == -1:
-        for fold in 5:
+        for fold in range(config.NUMBER_FOLDS):
             run(fold=fold, model_name=args.model)
     else:
         run(fold=args.fold, model_name=args.model)
