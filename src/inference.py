@@ -21,15 +21,14 @@ def predict(test_data_path: str, model_name: str, model_path: str):
         pre_pipeline = joblib.load(
             Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"))
         # preprocess data
-        x_test = pre_pipeline.transform(x_test)
+        x_test_processed = pre_pipeline.transform(x_test)
 
         # fetch model
         clf = joblib.load(Path(
             f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
 
         # predict
-        # preds = clf.predict(x_test)
-        pred_probs = clf.predict_proba(x_test)[:, 1]
+        pred_probs = clf.predict_proba(x_test_processed)[:, 1]
 
         if fold == 0:
             predictions = pred_probs
