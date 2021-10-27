@@ -1,4 +1,4 @@
-from sklearn import tree, ensemble, dummy, linear_model
+from sklearn import tree, ensemble, dummy, linear_model, svm, calibration
 import xgboost as xgb
 
 # TODO: hyperparameter tuning for each model.
@@ -42,5 +42,9 @@ models = {
                                                   random_state=42),
         "preprocessing_params":  {}
     },
+    "svm": {
+        "model":calibration.CalibratedClassifierCV(svm.LinearSVC(random_state=42, max_iter=2000), n_jobs=-1),
+        "preprocessing_params": {}
+    }
 
 }
