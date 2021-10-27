@@ -78,7 +78,8 @@ def run(fold: int, model_name: str):
     accuracy = metrics.accuracy_score(y_valid, valid_preds)
     auc = metrics.roc_auc_score(
         df_valid.Potability.values, valid_probs[:, 1])
-    print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
+    f1_score = metrics.f1_score(y_valid, valid_preds)
+    print(f"Fold={fold}, Accuracy={accuracy}, F1-score={f1_score}, AUC={auc}")
     # save the model
     # joblib.dump(clf, os.path.join(config.SAVED_MODELS,
     #             f"{model_name}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
