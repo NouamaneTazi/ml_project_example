@@ -28,4 +28,10 @@ models = {
         ),
         "preprocessing_params":  {"add_Solids_log": False}
     },
+    "extratrees": {
+        "model":  ensemble.ExtraTreesClassifier(n_jobs=-1,
+                                                random_state=42),
+        "preprocessing_params":  {"add_Solids_log": False}
+    },
+
 }

@@ -56,17 +56,23 @@ def predict(test_data_path: str, model_name: str, model_path: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Evaluate a model on provided data')
     parser.add_argument(
         "--model",
         type=str,
         default="rf"
     )
+    parser.add_argument(
+        "--data",
+        type=str,
+        default=config.TRAINING_FILE
+    )
     args = parser.parse_args()
-
+    print()
     # save initial test data with new Predictions column
-    submission = predict(test_data_path=config.TRAINING_FILE,
+    submission = predict(test_data_path=args.data,
                          model_name=args.model,
                          model_path=config.SAVED_MODELS)
     submission.to_csv(
         f"{config.PREDICTIONS}/{args.model}_submission.csv", index=False)
+    print()

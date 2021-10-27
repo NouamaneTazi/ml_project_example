@@ -90,7 +90,7 @@ def run(fold: int, model_name: str):
 
 if __name__ == "__main__":
     # initialize ArgumentParser class of argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser('Train specified model on all fold but specified fold.')
     parser.add_argument(
         "--fold",
         type=int,
