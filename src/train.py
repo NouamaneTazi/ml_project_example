@@ -12,28 +12,31 @@ from sklearn.impute import SimpleImputer
 from preprocessing import preprocessing_pipeline
 
 
-def preprocess(x_train, x_valid, model):
+def preprocess(x_train, x_valid, model_name):
     """
     This function is used for feature engineering
     :param df: the pandas dataframe with train/test data
     :param model: the model configuration
     :return: dataframe with new features
     """
-    pre_pipeline = preprocessing_pipeline(
-    )  # TODO use config to handle pipeline params
+    # fetch preprocessing params from model_dispatcher
+    preprocessing_params = model_dispatcher.models[model_name].get(
+        "preprocessing_params", {})
+    pre_pipeline = preprocessing_pipeline(**preprocessing_params)
 
+    # preprocess data
     x_train = pre_pipeline.fit_transform(x_train)
     x_valid = pre_pipeline.transform(x_valid)
 
     return x_train, x_valid
 
 
-def run(fold, model):
+def run(fold: int, model_name: str):
     """
-    Fits :model: on the rest of folds, and validates on the fold :fold:.
+    Fits :model_name: on the rest of folds, and validates on the fold :fold:.
     It also saves the trained model.
     :param fold: the fold id used for validation
-    :param model: the model configuration
+    :param model_name: the model configuration
     """
     # read the training data with folds
     df = pd.read_csv(config.TRAINING_FILE)
@@ -44,7 +47,7 @@ def run(fold, model):
     df_valid = df[df.kfold == fold].reset_index(drop=True)
 
     # drop the Potability column from dataframe and convert it to
-    # a numpy array by using .values.
+    # a numpy array.
     # target is Potability column in the dataframe
     x_train = df_train.drop(["Potability", "kfold"], axis=1).values
     y_train = df_train.Potability.values
@@ -53,10 +56,10 @@ def run(fold, model):
     y_valid = df_valid.Potability.values
 
     # Preprocess data
-    x_train, x_valid = preprocess(x_train, x_valid, model)
+    x_train, x_valid = preprocess(x_train, x_valid, model_name)
 
     # fetch the model from model_dispatcher
-    clf = model_dispatcher.models[model]
+    clf = model_dispatcher.models[model_name]["model"]
 
     # fit the model on training data
     clf.fit(x_train, y_train)
@@ -70,7 +73,7 @@ def run(fold, model):
     print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
     # save the model
     joblib.dump(clf, os.path.join(config.MODEL_OUTPUT,
-                f"{model}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
+                f"{model_name}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
 
 
 if __name__ == "__main__":
@@ -87,4 +90,6 @@ if __name__ == "__main__":
         default="rf"
     )
     args = parser.parse_args()
-    run(fold=args.fold, model=args.model)
+    print()
+    run(fold=args.fold, model_name=args.model)
+    print()
