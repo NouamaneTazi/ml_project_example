@@ -1,8 +1,12 @@
-from sklearn import tree, ensemble
+from sklearn import tree, ensemble, dummy
 import xgboost as xgb
 
 # TODO: hyperparameter tuning for each model.
 models = {
+    "constant": {
+        "model": dummy.DummyClassifier(constant=0),
+        "preprocessing_params": {}
+    },
     "dt_gini": {
         "model": tree.DecisionTreeClassifier(
             criterion="gini",
