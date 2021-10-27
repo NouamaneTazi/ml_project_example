@@ -10,6 +10,13 @@
             "request": "launch",
             "program": "src/train.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Predict",
+            "type": "python",
+            "request": "launch",
+            "program": "src/inference.py",
+            "console": "integratedTerminal"
         }
     ]
 }

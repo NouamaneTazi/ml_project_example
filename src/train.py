@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="dt_gini"
+        default="rf"
     )
     args = parser.parse_args()
     print()
