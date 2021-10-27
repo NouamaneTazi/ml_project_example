@@ -1,4 +1,4 @@
-from sklearn import tree, ensemble, dummy
+from sklearn import tree, ensemble, dummy, linear_model
 import xgboost as xgb
 
 # TODO: hyperparameter tuning for each model.
@@ -23,19 +23,24 @@ models = {
     "rf": {
         "model": ensemble.RandomForestClassifier(n_jobs=-1,
                                                  random_state=42),
-        "preprocessing_params":  {"add_Solids_log": False}
+        "preprocessing_params":  {}
     },
     "xgb": {
         "model":  xgb.XGBClassifier(
             n_jobs=-1,
             random_state=42
         ),
-        "preprocessing_params":  {"add_Solids_log": False}
+        "preprocessing_params":  {}
     },
     "extratrees": {
         "model":  ensemble.ExtraTreesClassifier(n_jobs=-1,
                                                 random_state=42),
-        "preprocessing_params":  {"add_Solids_log": False}
+        "preprocessing_params":  {}
+    },
+    "log_reg": {
+        "model":  linear_model.LogisticRegression(n_jobs=-1,
+                                                  random_state=42),
+        "preprocessing_params":  {}
     },
 
 }

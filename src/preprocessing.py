@@ -68,7 +68,7 @@ class PolyFeaturesAdder(BaseEstimator, TransformerMixin):
         else:
             return X
 
-def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=True, poly_degree=1):
+def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=False, poly_degree=1):
     """
     This function's goal is to build a preprocessing pipeline with given preprocessing strategy.
 
