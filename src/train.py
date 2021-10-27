@@ -4,6 +4,7 @@ import model_dispatcher
 import time
 import joblib
 import argparse
+from pathlib import Path
 
 import pandas as pd
 from sklearn import metrics
@@ -12,7 +13,7 @@ from sklearn.impute import SimpleImputer
 from preprocessing import preprocessing_pipeline
 
 
-def preprocess(x_train, x_valid, model_name):
+def preprocess(x_train, x_valid, model_name, fold):
     """
     This function is used for feature engineering
     :param df: the pandas dataframe with train/test data
@@ -27,6 +28,13 @@ def preprocess(x_train, x_valid, model_name):
     # preprocess data
     x_train = pre_pipeline.fit_transform(x_train)
     x_valid = pre_pipeline.transform(x_valid)
+
+    # create corresponding folder if doesnt exist
+    Path(f"{config.SAVED_MODELS}/{model_name}")\
+        .mkdir(parents=True, exist_ok=True)
+    # save model
+    joblib.dump(
+        pre_pipeline, Path(f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl"))
 
     return x_train, x_valid
 
@@ -56,7 +64,7 @@ def run(fold: int, model_name: str):
     y_valid = df_valid.Potability.values
 
     # Preprocess data
-    x_train, x_valid = preprocess(x_train, x_valid, model_name)
+    x_train, x_valid = preprocess(x_train, x_valid, model_name, fold)
 
     # fetch the model from model_dispatcher
     clf = model_dispatcher.models[model_name]["model"]
@@ -72,8 +80,15 @@ def run(fold: int, model_name: str):
         df_valid.Potability.values, valid_probs[:, 1])
     print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
     # save the model
-    joblib.dump(clf, os.path.join(config.MODEL_OUTPUT,
-                f"{model_name}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
+    # joblib.dump(clf, os.path.join(config.SAVED_MODELS,
+    #             f"{model_name}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
+
+    # create corresponding folder if doesnt exist
+    Path(f"{config.SAVED_MODELS}/{model_name}")\
+        .mkdir(parents=True, exist_ok=True)
+    # save model
+    joblib.dump(
+        clf, Path(f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin"))
 
 
 if __name__ == "__main__":
@@ -91,5 +106,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     print()
-    run(fold=args.fold, model_name=args.model)
+    if args.fold == -1:
+        for fold in 5:
+            run(fold=fold, model_name=args.model)
+    else:
+        run(fold=args.fold, model_name=args.model)
     print()
