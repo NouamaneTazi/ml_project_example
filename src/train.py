@@ -4,6 +4,8 @@ import model_dispatcher
 import time
 import joblib
 import argparse
+import csv
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -74,15 +76,12 @@ def run(fold: int, model_name: str):
     # create predictions for validation samples
     valid_preds = clf.predict(x_valid)
     valid_probs = clf.predict_proba(x_valid)
-    # get roc auc and accuracy score
+    # get roc auc and accuracy and f1 score
     accuracy = metrics.accuracy_score(y_valid, valid_preds)
     auc = metrics.roc_auc_score(
         df_valid.Potability.values, valid_probs[:, 1])
     f1_score = metrics.f1_score(y_valid, valid_preds)
     print(f"Fold={fold}, Accuracy={accuracy}, F1-score={f1_score}, AUC={auc}")
-    # save the model
-    # joblib.dump(clf, os.path.join(config.SAVED_MODELS,
-    #             f"{model_name}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
 
     # create corresponding folder if doesnt exist
     Path(f"{config.SAVED_MODELS}/{model_name}")\
@@ -90,6 +89,18 @@ def run(fold: int, model_name: str):
     # save model
     joblib.dump(
         clf, Path(f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin"))
+    # save logs
+    preprocessing_params = model_dispatcher.models[model_name].get(
+        "preprocessing_params", {})
+    with open(config.LOGS_FILE, 'a') as f:
+        csv.writer(f).writerow(
+            [time.strftime('%y%m%d-%H%M%S'),
+             model_name,
+             fold,
+             json.dumps(preprocessing_params),
+             round(accuracy, 5),
+             round(f1_score, 5),
+             round(auc, 5)])
 
 
 if __name__ == "__main__":
@@ -103,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="rf"
+        default="dt_gini"
     )
     args = parser.parse_args()
     print()
