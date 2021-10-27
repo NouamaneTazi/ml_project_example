@@ -1,7 +1,6 @@
 #!/bin/sh
 # -W ignore : ignore all warnings
-python -W ignore src/train.py --fold 0 --model rf 
-python -W ignore src/train.py --fold 1 --model rf
-python -W ignore src/train.py --fold 2 --model rf
-python -W ignore src/train.py --fold 3 --model rf
-python -W ignore src/train.py --fold 4 --model rf
+echo "Training on all folds (showing OOF scores)"
+python3 -W ignore src/train.py --fold -1 --model $1 
+echo "Evaluating trained model on whole dataset"
+python3 -W ignore src/inference.py --model $1
