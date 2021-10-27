@@ -4,6 +4,9 @@ import model_dispatcher
 import time
 import joblib
 import argparse
+import csv
+import json
+from pathlib import Path
 
 import pandas as pd
 from sklearn import metrics
@@ -12,7 +15,7 @@ from sklearn.impute import SimpleImputer
 from preprocessing import preprocessing_pipeline
 
 
-def preprocess(x_train, x_valid, model_name):
+def preprocess(x_train, x_valid, model_name, fold):
     """
     This function is used for feature engineering
     :param df: the pandas dataframe with train/test data
@@ -27,6 +30,13 @@ def preprocess(x_train, x_valid, model_name):
     # preprocess data
     x_train = pre_pipeline.fit_transform(x_train)
     x_valid = pre_pipeline.transform(x_valid)
+
+    # create corresponding folder if doesnt exist
+    Path(f"{config.SAVED_MODELS}/{model_name}")\
+        .mkdir(parents=True, exist_ok=True)
+    # save model
+    joblib.dump(
+        pre_pipeline, Path(f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl"))
 
     return x_train, x_valid
 
@@ -56,7 +66,7 @@ def run(fold: int, model_name: str):
     y_valid = df_valid.Potability.values
 
     # Preprocess data
-    x_train, x_valid = preprocess(x_train, x_valid, model_name)
+    x_train, x_valid = preprocess(x_train, x_valid, model_name, fold)
 
     # fetch the model from model_dispatcher
     clf = model_dispatcher.models[model_name]["model"]
@@ -66,14 +76,31 @@ def run(fold: int, model_name: str):
     # create predictions for validation samples
     valid_preds = clf.predict(x_valid)
     valid_probs = clf.predict_proba(x_valid)
-    # get roc auc and accuracy score
+    # get roc auc and accuracy and f1 score
     accuracy = metrics.accuracy_score(y_valid, valid_preds)
     auc = metrics.roc_auc_score(
         df_valid.Potability.values, valid_probs[:, 1])
-    print(f"Fold={fold}, Accuracy={accuracy}, AUC={auc}")
-    # save the model
-    joblib.dump(clf, os.path.join(config.MODEL_OUTPUT,
-                f"{model_name}_{fold}__{round(auc,3)}_{time.strftime('%m%d-%H%M%S')}.bin"))
+    f1_score = metrics.f1_score(y_valid, valid_preds)
+    print(f"Fold={fold}, Accuracy={accuracy}, F1-score={f1_score}, AUC={auc}")
+
+    # create corresponding folder if doesnt exist
+    Path(f"{config.SAVED_MODELS}/{model_name}")\
+        .mkdir(parents=True, exist_ok=True)
+    # save model
+    joblib.dump(
+        clf, Path(f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin"))
+    # save logs
+    preprocessing_params = model_dispatcher.models[model_name].get(
+        "preprocessing_params", {})
+    with open(config.LOGS_FILE, 'a') as f:
+        csv.writer(f).writerow(
+            [time.strftime('%y%m%d-%H%M%S'),
+             model_name,
+             fold,
+             json.dumps(preprocessing_params),
+             round(accuracy, 5),
+             round(f1_score, 5),
+             round(auc, 5)])
 
 
 if __name__ == "__main__":
@@ -82,7 +109,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--fold",
         type=int,
-        default=0
+        default=-1
     )
     parser.add_argument(
         "--model",
@@ -91,5 +118,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     print()
-    run(fold=args.fold, model_name=args.model)
+    if args.fold == -1:
+        for fold in range(config.NUMBER_FOLDS):
+            run(fold=fold, model_name=args.model)
+    else:
+        run(fold=args.fold, model_name=args.model)
     print()

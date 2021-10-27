@@ -2,7 +2,7 @@
 *.ini
 
 # Vscode
-.vscode/
+# .vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -14,3 +14,6 @@ __pycache__/
 
 # Local models
 /local_models
+
+# local logs
+scores.local.csv

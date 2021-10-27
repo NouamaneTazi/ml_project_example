@@ -1,0 +1,6 @@
+time,model name,validation fold number,preprocessing params,accuracy,f1 score,auc
+211027-181826,dt_gini,0,"{""missing"": ""median"", ""scaling"": ""standard"", ""add_Solids_log"": true, ""poly_degree"": 1}",0.58841,0.4664,0.56667
+211027-181826,dt_gini,1,"{""missing"": ""median"", ""scaling"": ""standard"", ""add_Solids_log"": true, ""poly_degree"": 1}",0.59237,0.4775,0.57257
+211027-181826,dt_gini,2,"{""missing"": ""median"", ""scaling"": ""standard"", ""add_Solids_log"": true, ""poly_degree"": 1}",0.57252,0.43089,0.54406
+211027-181827,dt_gini,3,"{""missing"": ""median"", ""scaling"": ""standard"", ""add_Solids_log"": true, ""poly_degree"": 1}",0.58015,0.49168,0.5668
+211027-181827,dt_gini,4,"{""missing"": ""median"", ""scaling"": ""standard"", ""add_Solids_log"": true, ""poly_degree"": 1}",0.58626,0.46123,0.56251
