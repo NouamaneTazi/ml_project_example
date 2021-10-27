@@ -13,6 +13,7 @@ from sklearn import metrics
 from sklearn import tree
 from sklearn.impute import SimpleImputer
 from preprocessing import preprocessing_pipeline
+from utils import save_file, save_logs
 
 
 def preprocess(x_train, x_valid, model_name, fold):
@@ -31,12 +32,8 @@ def preprocess(x_train, x_valid, model_name, fold):
     x_train = pre_pipeline.fit_transform(x_train)
     x_valid = pre_pipeline.transform(x_valid)
 
-    # create corresponding folder if doesnt exist
-    Path(f"{config.SAVED_MODELS}/{model_name}")\
-        .mkdir(parents=True, exist_ok=True)
-    # save model
-    joblib.dump(
-        pre_pipeline, Path(f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl"))
+    save_file(
+        pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
 
     return x_train, x_valid
 
@@ -83,24 +80,12 @@ def run(fold: int, model_name: str):
     f1_score = metrics.f1_score(y_valid, valid_preds)
     print(f"Fold={fold}, Accuracy={accuracy}, F1-score={f1_score}, AUC={auc}")
 
-    # create corresponding folder if doesnt exist
-    Path(f"{config.SAVED_MODELS}/{model_name}")\
-        .mkdir(parents=True, exist_ok=True)
     # save model
-    joblib.dump(
-        clf, Path(f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin"))
+    save_file(
+        clf, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin")
+
     # save logs
-    preprocessing_params = model_dispatcher.models[model_name].get(
-        "preprocessing_params", {})
-    with open(config.LOGS_FILE, 'a') as f:
-        csv.writer(f).writerow(
-            [time.strftime('%y%m%d-%H%M%S'),
-             model_name,
-             fold,
-             json.dumps(preprocessing_params),
-             round(accuracy, 5),
-             round(f1_score, 5),
-             round(auc, 5)])
+    save_logs(model_name, fold, accuracy, f1_score, auc)
 
 
 if __name__ == "__main__":

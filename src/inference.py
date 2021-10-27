@@ -3,14 +3,17 @@ import joblib
 import argparse
 from pathlib import Path
 import pandas as pd
+import numpy as np
+from sklearn import metrics
+from utils import save_logs
 
 
 def predict(test_data_path: str, model_name: str, model_path: str):
     # read testing data
     df = pd.read_csv(test_data_path)
 
-    # Preprocess data
-    x_test = df.values
+    x_test = df.drop(["Potability", "kfold"], axis=1, errors='ignore').values
+    y_test = df.Potability.values if "Potability" in df else None
 
     for fold in range(5):
 
@@ -35,8 +38,20 @@ def predict(test_data_path: str, model_name: str, model_path: str):
 
     # average over all folds
     predictions /= config.NUMBER_FOLDS
+    predicted_classes = np.round(predictions)
+
+    if y_test is not None:
+        # get roc auc and accuracy and f1 score
+        accuracy = metrics.accuracy_score(y_test, predicted_classes)
+        auc = metrics.roc_auc_score(y_test, predictions)
+        f1_score = metrics.f1_score(y_test, predicted_classes)
+        print(
+            f"Fold={-1}, Accuracy={accuracy}, F1-score={f1_score}, AUC={auc}")
+        # save logs
+        save_logs(model_name, -1, accuracy, f1_score, auc)
 
     df['Predictions'] = predictions
+    df['Predicted Potability'] = predicted_classes
     return df
 
 
@@ -50,7 +65,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # save initial test data with new Predictions column
-    submission = predict(test_data_path=config.TESTING_FILE,
+    submission = predict(test_data_path=config.TRAINING_FILE,
                          model_name=args.model,
                          model_path=config.SAVED_MODELS)
     submission.to_csv(
