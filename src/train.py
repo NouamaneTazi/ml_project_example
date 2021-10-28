@@ -1,30 +1,25 @@
-import os
 import config
 import model_dispatcher
-import time
-import joblib
 import argparse
-import csv
-import json
-from pathlib import Path
 
 import pandas as pd
-from sklearn import metrics
-from sklearn import tree
-from sklearn.impute import SimpleImputer
 from preprocessing import preprocessing_pipeline
+from training import train
 from utils import save_file, save_logs
 
 
-def preprocess(x_train, x_valid, model_name, fold):
+def run_preprocess(x_train, x_valid, model_name, fold, preprocess_params=None):
     """
     This function is used for feature engineering
-    :param df: the pandas dataframe with train/test data
-    :param model: the model configuration
-    :return: dataframe with new features
+    :param x_train: the numpy array with train data
+    :param x_valid: the numpy array with valid data
+    :param model_name: the model name
+    :param fold: the fold id used for validation
+    :param preprocess_params: (optional) parameters for the preprocessing step
+    :return: x_train and x_test, preprocessed
     """
     # fetch preprocessing params from model_dispatcher
-    preprocessing_params = model_dispatcher.models[model_name].get(
+    preprocessing_params = preprocess_params or model_dispatcher.models[model_name].get(
         "preprocessing_params", {})
     pre_pipeline = preprocessing_pipeline(**preprocessing_params)
 
@@ -37,16 +32,57 @@ def preprocess(x_train, x_valid, model_name, fold):
 
     return x_train, x_valid
 
-
-def run(fold: int, model_name: str):
+def run_train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_params: dict = None):
     """
-    Fits :model_name: on the rest of folds, and validates on the fold :fold:.
-    It also saves the trained model.
+    Train and test :model_name: and save it.
+    :param x_train: the numpy array with train data
+    :param y_train: the numpy array with train labels
+    :param x_valid: the numpy array with valid data
+    :param y_valid: the numpy array with valid labels
     :param fold: the fold id used for validation
-    :param model_name: the model configuration
+    :param model_name: the model name
+    :param model_params: (optional) the model configuration
+    :return: metrics (accuracy, AUC, f1 score)
     """
+    # fetch the model from model_dispatcher
+    clf = model_dispatcher.models[model_name]["model"]
+    if model_params:
+        clf.set_params(**model_params)
+
+    results_training = train(x_train, y_train, x_valid, y_valid, clf)
+    metrics = results_training["metrics"]
+    print(f"Fold={fold}, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
+
+    # save model
+    save_file(
+        clf, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin")
+
+    # save logs
+    save_logs(model_name, fold, metrics['accuracy'], metrics['f1_score'], metrics['auc'])
+
+    return metrics
+
+def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dict = None, model_params: dict = None):
+    """
+    Preprocess data and fits :model_name: on the rest of folds, and validates on the fold :fold:.
+    :param fold: the fold id used for validation
+    :param train_data_path: the path for the train dataframe
+    :param model_name: the model configuration
+    :param preprocess_params: (optional) parameters for the preprocessing step
+    :param model_params: (optional) the model configuration
+    :return: metrics (accuracy, AUC, f1 score)
+    """
+    if fold == -1:
+        metrics = {"accuracy": 0, "auc": 0, "f1_score": 0}
+        for fold_k in range(config.NUMBER_FOLDS):
+            new_metrics = run(fold=fold_k, train_data_path=train_data_path, model_name=model_name)
+            metrics = {k: v+new_metrics[k] for k,v in metrics.items()}
+        metrics = {k: v/config.NUMBER_FOLDS for k,v in metrics.items()}
+        print(f"Avg on all folds, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
+        return metrics
+    
     # read the training data with folds
-    df = pd.read_csv(config.TRAINING_FILE)
+    df = pd.read_csv(train_data_path)
 
     # training data is where kfold is not equal to provided fold
     df_train = df[df.kfold != fold].reset_index(drop=True)
@@ -63,29 +99,9 @@ def run(fold: int, model_name: str):
     y_valid = df_valid.Potability.values
 
     # Preprocess data
-    x_train, x_valid = preprocess(x_train, x_valid, model_name, fold)
+    x_train, x_valid = run_preprocess(x_train, x_valid, model_name, fold, preprocess_params)
 
-    # fetch the model from model_dispatcher
-    clf = model_dispatcher.models[model_name]["model"]
-
-    # fit the model on training data
-    clf.fit(x_train, y_train)
-    # create predictions for validation samples
-    valid_preds = clf.predict(x_valid)
-    valid_probs = clf.predict_proba(x_valid)
-    # get roc auc and accuracy and f1 score
-    accuracy = metrics.accuracy_score(y_valid, valid_preds)
-    auc = metrics.roc_auc_score(
-        df_valid.Potability.values, valid_probs[:, 1])
-    f1_score = metrics.f1_score(y_valid, valid_preds)
-    print(f"Fold={fold}, Accuracy={accuracy}, F1-score={f1_score}, AUC={auc}")
-
-    # save model
-    save_file(
-        clf, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin")
-
-    # save logs
-    save_logs(model_name, fold, accuracy, f1_score, auc)
+    return run_train(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
 
 
 if __name__ == "__main__":
@@ -101,11 +117,12 @@ if __name__ == "__main__":
         type=str,
         default="rf"
     )
+    parser.add_argument(
+        "--data",
+        type=str,
+        default=config.TRAINING_FILE
+    )
     args = parser.parse_args()
     print()
-    if args.fold == -1:
-        for fold in range(config.NUMBER_FOLDS):
-            run(fold=fold, model_name=args.model)
-    else:
-        run(fold=args.fold, model_name=args.model)
+    run(fold=args.fold, train_data_path=args.data, model_name=args.model)
     print()
