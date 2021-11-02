@@ -24,10 +24,10 @@ def save_file(object, path):
 
 
 def save_logs(model_name, fold, accuracy, f1_score, auc):
-    """saves prediction logs to `config.LOGS_FILE` (`logs/scores.csv` by default)"""
+    """saves prediction logs to `config.TRAIN_LOGS_FILE` (`logs/scores.csv` by default)"""
     preprocessing_params = model_dispatcher.models[model_name].get(
         "preprocessing_params", {})
-    with open(config.LOGS_FILE, 'a') as f:
+    with open(config.TRAIN_LOGS_FILE, 'a') as f:
         csv.writer(f).writerow(
             [time.strftime('%y%m%d-%H%M%S'),
              model_name,

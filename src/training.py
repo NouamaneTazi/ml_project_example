@@ -16,10 +16,11 @@ def train(x_train, y_train, x_valid, y_valid, model):
     model.fit(x_train, y_train)
     # create predictions for validation samples
     valid_preds = model.predict(x_valid)
-    valid_probs = model.predict_proba(x_valid)
-    # get roc auc and accuracy and f1 score
     accuracy = metrics.accuracy_score(y_valid, valid_preds)
-    auc = metrics.roc_auc_score(
-        y_valid, valid_probs[:, 1])
     f1_score = metrics.f1_score(y_valid, valid_preds)
+    try:
+        valid_probs = model.predict_proba(x_valid)
+        auc = metrics.roc_auc_score(y_valid, valid_probs[:, 1])
+    except:
+        auc = -1
     return {"model": model, "metrics": {"accuracy": accuracy, "auc": auc, "f1_score": f1_score}}

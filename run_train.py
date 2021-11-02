@@ -3,6 +3,16 @@ import json
 
 from src import config, models, train
 
+def fill_df(df_main, df_new):
+    for _, new_row in df_new.iterrows():
+        to_add = True
+        for _, row in df_main.iterrows():
+            if row["model_name"] == new_row["model_name"] and json.loads(row["preprocessing_params"]) == json.loads(new_row["preprocessing_params"]) and json.loads(row["model_params"]) == json.loads(new_row["model_params"]):
+                to_add = False
+        if to_add:
+            df_main = df_main.append(new_row)
+    return df_main
+
 if __name__ == "__main__":
     column_names = ["model_name", "preprocessing_params", "model_params", "accuracy", "auc", "f1_score"]
     df_results = pd.DataFrame(columns = column_names)
@@ -18,7 +28,7 @@ if __name__ == "__main__":
     path_save_results = f"./{config.SAVE_RESULTS}"
     try :
         df_before = pd.read_csv(path_save_results)
-        df_tot = df_before.append(df_results)
+        df_tot = fill_df(df_before, df_results)
         df_tot.to_csv(path_save_results, index=False)
     except:
         df_results.to_csv(path_save_results, index=False)
