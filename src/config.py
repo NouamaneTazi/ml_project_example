@@ -2,10 +2,11 @@ from dotenv import load_dotenv
 import os
 load_dotenv()  # take environment variables from .env.
 
-# About files
+# About data
 RAW_FILE = "data/drinking_water_potability.csv"
 TRAINING_FILE = "input/dri_wat_pot_folds.csv"
 TESTING_FILE = "input/dri_wat_pot_test.csv"
+SAVE_RESULTS = "predictions/results_all_models.csv"
 
 # General parameters
 RANDOM_STATE = 20
@@ -20,3 +21,4 @@ PREPROCESSING_PIPELINES = "local_pre_pipelines/" if os.getenv('SAVE_MODELS_IN_LO
 PREDICTIONS = "predictions/"
 LOGS_FILE = "logs/scores.local.csv" if os.getenv('SAVE_SCORES_IN_LOCAL',
                                                  'True').lower() in ('true', '1', 't') else "logs/scores.csv"
+SAVE_RESULTS = "predictions/results_all_models.csv"

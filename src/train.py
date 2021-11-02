@@ -1,11 +1,10 @@
-import config
-import model_dispatcher
+from . import config, model_dispatcher
 import argparse
 
 import pandas as pd
-from preprocessing import preprocessing_pipeline
-from training import train
-from utils import save_file, save_logs
+from .preprocessing import preprocessing_pipeline
+from .training import train
+from .utils import save_file, save_logs
 
 
 def run_preprocess(x_train, x_valid, model_name, fold, preprocess_params=None):
@@ -45,7 +44,7 @@ def run_train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, mo
     :return: metrics (accuracy, AUC, f1 score)
     """
     # fetch the model from model_dispatcher
-    clf = model_dispatcher.models[model_name]["model"]
+    clf = model_dispatcher.models[model_name]["model"](**model_dispatcher.models[model_name]["base_model_params"])
     if model_params:
         clf.set_params(**model_params)
 

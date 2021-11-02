@@ -1,6 +1,5 @@
 import os
-import config
-import model_dispatcher
+from . import config, model_dispatcher
 import time
 import joblib
 import argparse
@@ -12,7 +11,7 @@ import pandas as pd
 from sklearn import metrics
 from sklearn import tree
 from sklearn.impute import SimpleImputer
-from preprocessing import preprocessing_pipeline
+from .preprocessing import preprocessing_pipeline
 
 
 def save_file(object, path):
