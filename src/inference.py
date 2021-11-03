@@ -1,4 +1,4 @@
-import config
+from . import config
 import joblib
 import argparse
 from pathlib import Path
@@ -7,7 +7,7 @@ import numpy as np
 from sklearn import metrics
 from utils import save_logs
 
-from testing import test
+from .testing import test
 
 
 def predict(fold: int, test_data_path: str, model_name: str, model_path: str):

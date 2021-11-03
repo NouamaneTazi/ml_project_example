@@ -1,14 +1,13 @@
-import config
-import model_dispatcher
+from . import config, model_dispatcher
 import argparse
 
 import pandas as pd
-from preprocessing import preprocessing_pipeline
-from training import train
-from utils import save_file, save_logs
+from .preprocessing import preprocessing_pipeline
+from .training import train
+from .utils import save_file, save_logs
 
 
-def run_preprocess(x_train, x_valid, model_name, fold, preprocess_params=None):
+def run_preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params=None):
     """
     This function is used for feature engineering
     :param x_train: the numpy array with train data
@@ -24,13 +23,13 @@ def run_preprocess(x_train, x_valid, model_name, fold, preprocess_params=None):
     pre_pipeline = preprocessing_pipeline(**preprocessing_params)
 
     # preprocess data
-    x_train = pre_pipeline.fit_transform(x_train)
-    x_valid = pre_pipeline.transform(x_valid)
+    x_train, y_train = pre_pipeline.fit_transform(x_train, y_train)
+    x_valid, y_valid = pre_pipeline.transform(x_valid, y_valid)
 
     save_file(
         pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
 
-    return x_train, x_valid
+    return x_train, y_train, x_valid, y_valid
 
 def run_train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_params: dict = None):
     """
@@ -45,7 +44,7 @@ def run_train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, mo
     :return: metrics (accuracy, AUC, f1 score)
     """
     # fetch the model from model_dispatcher
-    clf = model_dispatcher.models[model_name]["model"]
+    clf = model_dispatcher.models[model_name]["model"](**model_dispatcher.models[model_name]["base_model_params"])
     if model_params:
         clf.set_params(**model_params)
 
@@ -99,7 +98,7 @@ def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dic
     y_valid = df_valid.Potability.values
 
     # Preprocess data
-    x_train, x_valid = run_preprocess(x_train, x_valid, model_name, fold, preprocess_params)
+    x_train, y_train, x_valid, y_valid = run_preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params)
 
     return run_train(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
 

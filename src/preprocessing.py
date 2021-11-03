@@ -8,6 +8,27 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import IterativeImputer, KNNImputer, SimpleImputer
 
+class ModifiedPreprocessingPipeline:
+    def __init__(self, missing, pipeline):
+        self.missing = missing
+        self.pipeline = pipeline
+
+    def fit_transform(self, X, y):
+        if self.missing == "remove_rows":
+            if isinstance(X, pd.DataFrame):
+                X = X.values
+            to_keep = ~np.isnan(X).any(axis=1)
+            X, y = X[to_keep, :], y[to_keep]
+        return self.pipeline.fit_transform(X), y
+
+    def transform(self, X, y):
+        if self.missing == "remove_rows":
+            if isinstance(X, pd.DataFrame):
+                X = X.values
+            to_keep = ~np.isnan(X).any(axis=1)
+            X, y = X[to_keep, :], y[to_keep]
+        return self.pipeline.transform(X), y
+
 
 class RemoveNull(BaseEstimator, TransformerMixin):
     '''Defines a transformer to delete rows or cols containing null values'''
@@ -21,7 +42,10 @@ class RemoveNull(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         if isinstance(X, pd.DataFrame):
             X = X.values
-        return X[~np.isnan(X).any(axis=self.direction)]
+        if self.direction == 0:
+            return X[:, ~np.isnan(X).any(axis=0)]
+        else:
+            return X
 
 
 class SolidsLogAdder(BaseEstimator, TransformerMixin):
@@ -83,7 +107,7 @@ def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=
     add_Solids_log: boolean (default is True)
         Add log of solid feature
         Possible values: True, False
-    add_poly_features: int (default is 1)
+    poly_degree: int (default is 1)
         Add polynoms of features with the indicated degree
         Possible values: 1 (nothing is added), 2, 3...
 
@@ -96,7 +120,7 @@ def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=
     if missing in ["mean", "median", "most_frequent"]:
         missing_imputer = SimpleImputer(strategy=missing)
     elif missing in ["remove_rows", "remove_cols"]:
-        missing_imputer = RemoveNull(0 if missing == "remove_rows" else 1)
+        missing_imputer = RemoveNull(0 if missing == "remove_cols" else 1)
     elif missing in ["regression", "stochastic"]:
         missing_imputer = IterativeImputer(
             sample_posterior=(missing == "stochastic"))
@@ -113,9 +137,10 @@ def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=
     elif scaling == "min_max":
         scaler = MinMaxScaler(feature_range=(-1, 1))
 
-    return Pipeline([
+    pipeline = Pipeline([
         ('missing', missing_imputer),
         ('solid_logs_adder', solid_logs_adder),
         ('sq_features_adder', poly_features_adder),
         ('scaling', scaler)
     ])
+    return ModifiedPreprocessingPipeline(missing, pipeline)

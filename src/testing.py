@@ -1,11 +1,11 @@
-import config
+from . import config
 import joblib
 import argparse
 from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn import metrics
-from utils import save_logs
+from .utils import save_logs
 
 
 def test(x_test, y_test, model):
