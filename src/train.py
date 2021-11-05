@@ -7,7 +7,7 @@ from .training import train
 from .utils import save_file, save_logs
 
 
-def run_preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params=None):
+def preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params=None):
     """
     This function is used for feature engineering
     :param x_train: the numpy array with train data
@@ -31,7 +31,7 @@ def run_preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preproc
 
     return x_train, y_train, x_valid, y_valid
 
-def run_train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_params: dict = None):
+def train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_params: dict = None):
     """
     Train and test :model_name: and save it.
     :param x_train: the numpy array with train data
@@ -98,9 +98,9 @@ def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dic
     y_valid = df_valid.Potability.values
 
     # Preprocess data
-    x_train, y_train, x_valid, y_valid = run_preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params)
+    x_train, y_train, x_valid, y_valid = preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params)
 
-    return run_train(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
+    return train(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from .utils import save_file
 
 from .preprocessing import preprocessing_pipeline
 
-def run_preprocess(X, y, model_name, fold, preprocess_params=None):
+def preprocess(X, y, model_name, fold, preprocess_params=None):
     """
     This function is used for feature engineering
     :param X: the numpy array with data
@@ -43,7 +43,7 @@ def search_best_params(fold: int, train_data_path: str, model_name: str, preproc
         df = df[df["kfold"] == fold].reset_index(drop=True)
     X = df.drop(["Potability", "kfold"], axis=1).values
     y = df.Potability.values
-    X, y = run_preprocess(X, y, model_name, fold, preprocess_params)
+    X, y = preprocess(X, y, model_name, fold, preprocess_params)
 
     # Instantiate GridSearch
     clf = model_dispatcher.models[model_name]["model"](**model_dispatcher.models[model_name]["base_model_params"])
