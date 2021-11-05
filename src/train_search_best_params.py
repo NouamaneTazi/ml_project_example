@@ -50,7 +50,7 @@ def search_best_params(fold: int, train_data_path: str, model_name: str, preproc
     if base_model_params:
         clf.set_params(**base_model_params)
     search_model_params = search_model_params if search_model_params else model_dispatcher.models[model_name]["search_model_params"]
-    gs = GridSearchCV(clf, search_model_params, scoring=('accuracy', 'roc_auc', 'f1'), refit=False)
+    gs = GridSearchCV(clf, search_model_params, scoring=('accuracy', 'roc_auc', 'f1'), refit=False, n_jobs=-1, verbose=0)
 
     # Train and output
     gs.fit(X, y)
