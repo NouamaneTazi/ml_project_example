@@ -5,12 +5,44 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn import metrics
-from utils import save_logs
+from .utils import save_logs
 
 from .testing import test
 
 
-def predict(fold: int, test_data_path: str, model_name: str, model_path: str):
+
+def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS):
+    """
+    Predict water drinking potability class and probablities from one sample data
+    :param sample: array-like of length 9 containing data used for prediction
+    :param model_name: the model to use for prediction (must be stored in `model_path`)
+    :param model_path: the path of the pretrained model
+    :return: a tuple containing water drinking potability and classes probabilities
+    """
+    fold = 0 # use models trained on all folds for predicting
+    if not isinstance(sample, (list, tuple, np.ndarray)):
+        raise TypeError("sample must be array like")
+    if len(sample)!=9:
+        raise ValueError("Provided sample must be of length: 9")
+
+    x_test = np.array(sample).reshape(1,-1)
+
+    # fetch preprocessing pipeline
+    pre_pipeline = joblib.load(
+        Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"))
+    # preprocess data
+    x_test_processed, _ = pre_pipeline.transform(x_test)
+
+    # fetch model
+    clf = joblib.load(Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
+
+    # predict
+    pred_probs = clf.predict_proba(x_test_processed)[0]
+    predicted_classes = np.argmax(pred_probs)
+    
+    return predicted_classes, pred_probs, pre_pipeline, clf
+
+def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
     """
     Generate metrics on test dataset for model :model_path:.
     :param fold: the fold id used for validation
@@ -26,7 +58,7 @@ def predict(fold: int, test_data_path: str, model_name: str, model_path: str):
 
     if fold == -1:
         for fold_k in range(config.NUMBER_FOLDS):
-            results_test = predict(fold_k, test_data_path, model_name, model_path)
+            results_test = _predict(fold_k, test_data_path, model_name, model_path)
             if fold_k == 0:
                 pred_prob = results_test["predict_prob"]
             else:
@@ -87,7 +119,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print()
     # save initial test data with new Predictions column
-    predict(fold=args.fold,
+    _predict(fold=args.fold,
             test_data_path=args.data,
             model_name=args.model,
             model_path=config.SAVED_MODELS)
