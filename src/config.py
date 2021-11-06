@@ -1,6 +1,10 @@
-from dotenv import load_dotenv
 import os
-load_dotenv()  # take environment variables from .env.
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # take environment variables from .env.
+except:
+    pass
 
 # About data
 RAW_FILE = "data/drinking_water_potability.csv"
