@@ -1,10 +1,9 @@
 import gradio as gr
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from src.inference import predict_one_sample
-from src import config
+from src import config, predict_one_sample
+
 MODEL_NAME = 'rf'
+
 def predict(*args):
     df = pd.DataFrame([args], columns=['ph',
                                     'Hardness',
@@ -17,9 +16,8 @@ def predict(*args):
                                     'Turbidity']
                     )
     predicted_class, pred_probs, _, _ = predict_one_sample(args, MODEL_NAME, config.SAVED_MODELS)
-    # df['Potability'] = predicted_class
-    
-    return dict(zip(['Not Potable', 'Potable'], pred_probs))
+    df['Potability'] = predicted_class
+    return dict(zip(['Not Potable', 'Potable'], pred_probs)), df
 
 iface = gr.Interface(
     predict,
@@ -34,7 +32,10 @@ iface = gr.Interface(
         gr.inputs.Slider(0.7, 130, label="Trihalomethanes", default=66),
         gr.inputs.Slider(1.4, 7, label="Turbidity", default=3.95),
     ],
-    gr.outputs.Label(type="auto", label="Water Potability"),
+    [
+        gr.outputs.Label(type="auto", label="Water Potability"),
+        "dataframe"
+    ],
     interpretation="default",
     server_port=7860
 )
