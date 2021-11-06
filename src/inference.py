@@ -40,7 +40,7 @@ def predict_one_sample(sample: np.array, model_name: str, model_path: str = conf
     pred_probs = clf.predict_proba(x_test_processed)[0]
     predicted_classes = np.argmax(pred_probs)
     
-    return predicted_classes, pred_probs
+    return predicted_classes, pred_probs, pre_pipeline, clf
 
 def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
     """
