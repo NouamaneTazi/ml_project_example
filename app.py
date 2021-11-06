@@ -5,29 +5,39 @@ import matplotlib.pyplot as plt
 from src.inference import predict_one_sample
 from src import config
 MODEL_NAME = 'rf'
-def predict(df):
-    predicted_class, _, _, _ = predict_one_sample(df.values.squeeze(), MODEL_NAME, config.SAVED_MODELS)
-    df['Potability'] = predicted_class
-    return df
+def predict(*args):
+    df = pd.DataFrame([args], columns=['ph',
+                                    'Hardness',
+                                    'Solids',
+                                    'Chloramines',
+                                    'Sulfate',
+                                    'Conductivity',
+                                    'Organic_carbon',
+                                    'Trihalomethanes',
+                                    'Turbidity']
+                    )
+    predicted_class, pred_probs, _, _ = predict_one_sample(args, MODEL_NAME, config.SAVED_MODELS)
+    # df['Potability'] = predicted_class
+    
+    return dict(zip(['Not Potable', 'Potable'], pred_probs))
 
-iface = gr.Interface(predict, 
-    gr.inputs.Dataframe(
-        headers=['ph',
- 'Hardness',
- 'Solids',
- 'Chloramines',
- 'Sulfate',
- 'Conductivity',
- 'Organic_carbon',
- 'Trihalomethanes',
- 'Turbidity'],
-        default=[[6.06, 160.77, 14775.15, 7.48, 305.83, 327.27, 12.31, 69.04, 3.47]]
-    ),
+iface = gr.Interface(
+    predict,
     [
-        "dataframe",
-        # "plot",
-        # "numpy"
+        gr.inputs.Slider(0, 14, label="Ph", default=7),
+        gr.inputs.Slider(40, 330, label="Hardness", default=196),
+        gr.inputs.Slider(320, 61230, label="Solids", default=20927) ,
+        gr.inputs.Slider(0.3, 15, label="Chloramines", default=7.13),
+        gr.inputs.Slider(120, 490, label="Sulfate", default=333),
+        gr.inputs.Slider(181, 755, label="Conductivity", default=421),
+        gr.inputs.Slider(2, 30, label="Organic carbon", default=14),
+        gr.inputs.Slider(0.7, 130, label="Trihalomethanes", default=66),
+        gr.inputs.Slider(1.4, 7, label="Turbidity", default=3.95),
     ],
-    description="Enter data to predict water potability."
+    gr.outputs.Label(type="auto", label="Water Potability"),
+    interpretation="default",
+    server_port=7860
 )
-iface.launch()
+
+if __name__ == "__main__":
+    iface.launch()
