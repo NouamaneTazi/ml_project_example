@@ -17,3 +17,10 @@ __pycache__/
 
 # local logs
 scores.local.csv
+
+# useless for huggingface spaces
+data/
+input/
+logs/
+notebooks/
+predictions/
