@@ -3,8 +3,8 @@ import argparse
 
 import pandas as pd
 from .preprocessing import preprocessing_pipeline
-from .training import train
 from .utils import save_file, save_logs
+from sklearn import metrics
 
 
 def preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params=None):
@@ -31,7 +31,33 @@ def preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_
 
     return x_train, y_train, x_valid, y_valid
 
-def train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_params: dict = None):
+
+
+def train_validate(x_train, y_train, x_valid, y_valid, model):
+    """
+    Fits :model: on :x_train:, and validates on :x_valid:.
+    :param x_train: the numpy array with train data
+    :param y_train: the numpy array with train labels
+    :param x_valid: the numpy array with valid data
+    :param y_valid: the numpy array with valid labels
+    :param fold: the fold id used for validation
+    :param model: the model (already built)
+    :return: a dict containing the trained model and metrics (accuracy, AUC, f1 score)
+    """
+    # fit the model on training data
+    model.fit(x_train, y_train)
+    # create predictions for validation samples
+    valid_preds = model.predict(x_valid)
+    accuracy = metrics.accuracy_score(y_valid, valid_preds)
+    f1_score = metrics.f1_score(y_valid, valid_preds)
+    try:
+        valid_probs = model.predict_proba(x_valid)
+        auc = metrics.roc_auc_score(y_valid, valid_probs[:, 1])
+    except:
+        auc = -1
+    return {"model": model, "metrics": {"accuracy": accuracy, "auc": auc, "f1_score": f1_score}}
+
+def train_save(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_params: dict = None):
     """
     Train and test :model_name: and save it.
     :param x_train: the numpy array with train data
@@ -48,7 +74,7 @@ def train(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_
     if model_params:
         clf.set_params(**model_params)
 
-    results_training = train(x_train, y_train, x_valid, y_valid, clf)
+    results_training = train_validate(x_train, y_train, x_valid, y_valid, clf)
     metrics = results_training["metrics"]
     print(f"Fold={fold}, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
 
@@ -100,7 +126,7 @@ def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dic
     # Preprocess data
     x_train, y_train, x_valid, y_valid = preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params)
 
-    return train(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
+    return train_save(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
 
 
 if __name__ == "__main__":

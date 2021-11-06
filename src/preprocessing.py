@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, PolynomialFeatures
@@ -13,7 +12,7 @@ class ModifiedPreprocessingPipeline:
         self.missing = missing
         self.pipeline = pipeline
 
-    def fit_transform(self, X, y):
+    def fit_transform(self, X, y=None):
         if self.missing == "remove_rows":
             if isinstance(X, pd.DataFrame):
                 X = X.values
@@ -21,7 +20,7 @@ class ModifiedPreprocessingPipeline:
             X, y = X[to_keep, :], y[to_keep]
         return self.pipeline.fit_transform(X), y
 
-    def transform(self, X, y):
+    def transform(self, X, y=None):
         if self.missing == "remove_rows":
             if isinstance(X, pd.DataFrame):
                 X = X.values

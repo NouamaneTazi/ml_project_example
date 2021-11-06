@@ -5,24 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Train",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Train model",
-            "type": "python",
-            "request": "launch",
-            "program": "src/train.py",
-            "console": "integratedTerminal"
+            "module": "src.train"
         },
         {
             "name": "Predict",
             "type": "python",
             "request": "launch",
-            "program": "src/inference.py",
+            "module": "src.inference"
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
             "console": "integratedTerminal"
         }
     ]
