@@ -2,7 +2,7 @@
 title: Drinking Water Potability
 emoji: 💧
 colorFrom: blue
-colorTo: orange
+colorTo: purple
 sdk: gradio
 app_file: app.py
 pinned: true
