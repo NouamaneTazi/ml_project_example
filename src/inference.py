@@ -1,14 +1,13 @@
-from . import config
 import joblib
 import argparse
 from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn import metrics
+
+from . import config
 from .utils import save_logs
-
 from .testing import test
-
 
 
 def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS):
