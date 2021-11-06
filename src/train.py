@@ -7,7 +7,7 @@ from .utils import save_file, save_logs
 from sklearn import metrics
 
 
-def preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params=None):
+def preprocess(x_train, y_train, x_valid, y_valid, model_name=None, fold=None, preprocess_params=None, save=True):
     """
     This function is used for feature engineering
     :param x_train: the numpy array with train data
@@ -26,8 +26,9 @@ def preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_
     x_train, y_train = pre_pipeline.fit_transform(x_train, y_train)
     x_valid, y_valid = pre_pipeline.transform(x_valid, y_valid)
 
-    save_file(
-        pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
+    if save:
+        save_file(
+            pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
 
     return x_train, y_train, x_valid, y_valid
 

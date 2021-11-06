@@ -5,14 +5,16 @@ from .utils import save_file
 
 from .preprocessing import preprocessing_pipeline
 
-def preprocess(X, y, model_name, fold, preprocess_params=None):
+def preprocess(X, y, model_name, fold=None, preprocess_params=None, save=True, return_pipeline=False):
     """
     This function is used for feature engineering
     :param X: the numpy array with data
     :param model_name: the model name
     :param fold: the fold id used for validation
     :param preprocess_params: (optional) parameters for the preprocessing step
-    :return: x_train and x_test, preprocessed
+    :param save: (optional) whether to save trained pipeline
+    :param return_pipeline: (optional) whether to return trained pipeline
+    :return: preprocessed X and y (and optionally preprocessing pipeline)
     """
     # fetch preprocessing params from model_dispatcher
     preprocessing_params = preprocess_params or model_dispatcher.models[model_name].get(
@@ -22,10 +24,14 @@ def preprocess(X, y, model_name, fold, preprocess_params=None):
     # preprocess data
     X, y = pre_pipeline.fit_transform(X, y)
 
-    save_file(
-        pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess_search_params.pkl")
+    if save:
+        save_file(
+            pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess_search_params.pkl")
 
-    return X, y
+    if return_pipeline:
+        return X, y, pre_pipeline
+    else:
+        return X, y
 
 def search_best_params(fold: int, train_data_path: str, model_name: str, preprocess_params: dict = None, base_model_params: dict = None, search_model_params: dict = None):
     """
