@@ -1,12 +1,3 @@
----
-title: Drinking Water Potability
-emoji: 💧
-colorFrom: blue
-colorTo: purple
-sdk: gradio
-app_file: app.py
-pinned: true
----
 # Drinking Water Potability
 [![Pylint](https://github.com/NouamaneTazi/drinking_water_potability/actions/workflows/pylint.yml/badge.svg)](https://github.com/NouamaneTazi/drinking_water_potability/actions/workflows/pylint.yml)
 [![Sync to Hugging Face hub](https://github.com/NouamaneTazi/drinking_water_potability/actions/workflows/huggingfacehub.yml/badge.svg?branch=spaces)](https://github.com/NouamaneTazi/drinking_water_potability/actions/workflows/huggingfacehub.yml)
