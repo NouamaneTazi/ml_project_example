@@ -7,7 +7,7 @@ from sklearn import metrics
 
 from . import config
 from .utils import save_logs
-from .testing import test
+from .evaluate import test
 
 
 def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS):
