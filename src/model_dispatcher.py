@@ -1,5 +1,8 @@
+from collections import namedtuple
 from sklearn import tree, ensemble, dummy, linear_model, svm, calibration, naive_bayes, neighbors
 import xgboost as xgb
+import numpy as np
+
 
 # TODO: hyperparameter tuning for each model.
 models = {
@@ -70,3 +73,43 @@ models = {
         "preprocessing_params": {"missing": "median", "scaling": "standard", "add_Solids_log": True, "poly_degree": 1}
     }
 }
+
+Learner = namedtuple('Learner', ['pre_pipeline', 'model'])
+class BaggingClf():
+    def __init__(self, learners, metalearners):
+        self.learners = learners
+        self.metalearners = metalearners
+    def predict_proba(self, X: np.array):
+        """ Predicts proba
+        Arguments : X of shape (-1,9) 
+        Returns : pred_probas of shape (-1,1) 
+        """
+        # Bootstrapping
+        preds1 = []
+        for pre_pipeline, model in self.learners:
+            X_processed, _ = pre_pipeline.transform(X)
+            preds1.append(model.predict_proba(X_processed)[:,1])
+        preds1 = np.column_stack(preds1)
+
+        # Aggregating
+        final_preds = []
+        for model in self.metalearners:
+            final_preds.append(model.predict(preds1))
+        final_preds = np.column_stack(final_preds)
+        final_preds = np.mean(final_preds, axis=1)
+        return final_preds
+
+    def predict(self, X: np.array):
+        """ Predicts class
+        Arguments : X of shape (-1,9) 
+        Returns : predicted_class of shape (-1,1) 
+        """
+        preds_probs = self.predict_proba(X)
+        predicted_class = np.round(preds_probs).astype(int)
+        return predicted_class
+
+class BaggingPrePipeline():
+    def __init__():
+        pass
+    def transform(X):
+        return X, None

@@ -7,7 +7,7 @@ from .utils import save_file, save_logs
 from sklearn import metrics
 
 
-def preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params=None):
+def preprocess(x_train, y_train, x_valid, y_valid, model_name=None, fold=None, preprocess_params=None, save=True):
     """
     This function is used for feature engineering
     :param x_train: the numpy array with train data
@@ -26,8 +26,9 @@ def preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_
     x_train, y_train = pre_pipeline.fit_transform(x_train, y_train)
     x_valid, y_valid = pre_pipeline.transform(x_valid, y_valid)
 
-    save_file(
-        pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
+    if save:
+        save_file(
+            pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
 
     return x_train, y_train, x_valid, y_valid
 
@@ -76,7 +77,6 @@ def train_save(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, m
 
     results_training = train_validate(x_train, y_train, x_valid, y_valid, clf)
     metrics = results_training["metrics"]
-    print(f"Fold={fold}, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
 
     # save model
     save_file(
@@ -102,7 +102,7 @@ def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dic
         for fold_k in range(config.NUMBER_FOLDS):
             new_metrics = run(fold=fold_k, train_data_path=train_data_path, model_name=model_name)
             metrics = {k: v+new_metrics[k] for k,v in metrics.items()}
-        metrics = {k: v/config.NUMBER_FOLDS for k,v in metrics.items()}
+        metrics = {k: v/config.NUMBER_FOLDS for k,v in metrics.items()} # TODO: this is not necessarily correct
         print(f"Avg on all folds, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
         return metrics
     
@@ -126,7 +126,9 @@ def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dic
     # Preprocess data
     x_train, y_train, x_valid, y_valid = preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params)
 
-    return train_save(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
+    metrics = train_save(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
+    print(f"Fold={fold}, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
+    return metrics
 
 
 if __name__ == "__main__":

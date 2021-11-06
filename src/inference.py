@@ -9,8 +9,9 @@ from . import config
 from .utils import save_logs
 from .evaluate import test
 
+from .model_dispatcher import BaggingClf, BaggingPrePipeline, Learner
 
-def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS):
+def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS, fold: int = -1):
     """
     Predict water drinking potability class and probablities from one sample data
     :param sample: array-like of length 9 containing data used for prediction
@@ -18,7 +19,6 @@ def predict_one_sample(sample: np.array, model_name: str, model_path: str = conf
     :param model_path: the path of the pretrained model
     :return: a tuple containing water drinking potability and classes probabilities
     """
-    fold = 0 # use models trained on all folds for predicting
     if not isinstance(sample, (list, tuple, np.ndarray)):
         raise TypeError("sample must be array like")
     if len(sample)!=9:
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="rf"
+        default="bagging"
     )
     parser.add_argument(
         "--data",

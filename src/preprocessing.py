@@ -17,7 +17,8 @@ class ModifiedPreprocessingPipeline:
             if isinstance(X, pd.DataFrame):
                 X = X.values
             to_keep = ~np.isnan(X).any(axis=1)
-            X, y = X[to_keep, :], y[to_keep]
+            X = X[to_keep, :]
+            if isinstance(y, np.ndarray): y = y[to_keep]
         return self.pipeline.fit_transform(X), y
 
     def transform(self, X, y=None):
@@ -25,7 +26,8 @@ class ModifiedPreprocessingPipeline:
             if isinstance(X, pd.DataFrame):
                 X = X.values
             to_keep = ~np.isnan(X).any(axis=1)
-            X, y = X[to_keep, :], y[to_keep]
+            X = X[to_keep, :]
+            if isinstance(y, np.ndarray): y = y[to_keep]
         return self.pipeline.transform(X), y
 
 
