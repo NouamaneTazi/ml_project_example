@@ -6,11 +6,11 @@ import numpy as np
 from sklearn import metrics
 
 from . import config
-from .utils import save_logs
+from .utils import save_logs, CustomUnpickler
 from .evaluate import test
 
 
-def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS):
+def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS, fold: int = -1):
     """
     Predict water drinking potability class and probablities from one sample data
     :param sample: array-like of length 9 containing data used for prediction
@@ -18,7 +18,6 @@ def predict_one_sample(sample: np.array, model_name: str, model_path: str = conf
     :param model_path: the path of the pretrained model
     :return: a tuple containing water drinking potability and classes probabilities
     """
-    fold = 0 # use models trained on all folds for predicting
     if not isinstance(sample, (list, tuple, np.ndarray)):
         raise TypeError("sample must be array like")
     if len(sample)!=9:
@@ -26,20 +25,43 @@ def predict_one_sample(sample: np.array, model_name: str, model_path: str = conf
 
     x_test = np.array(sample).reshape(1,-1)
 
-    # fetch preprocessing pipeline
-    pre_pipeline = joblib.load(
-        Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"))
+    # fetch preprocessing pipeline and model
+    try:
+        pre_pipeline = joblib.load(
+            Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"))    
+        clf = joblib.load(Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
+    except:
+        with open(Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"), 'rb') as f:
+            pre_pipeline = CustomUnpickler(f).load()
+        with open(Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"), 'rb') as f:
+            clf = CustomUnpickler(f).load()
+
     # preprocess data
     x_test_processed, _ = pre_pipeline.transform(x_test)
-
-    # fetch model
-    clf = joblib.load(Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
-
     # predict
     pred_probs = clf.predict_proba(x_test_processed)[0]
     predicted_classes = np.argmax(pred_probs)
     
     return predicted_classes, pred_probs, pre_pipeline, clf
+
+predict_one_sample([7.273368228,
+ 175.0150826,
+ 14206.35732,
+ 7.839066572,
+ 337.6445728,
+ 322.4906894,
+ 18.10784209,
+ 58.1817074,
+ 4.196421036], 'bagging', fold=-1)
+# predict_one_sample([7.273368228,
+#  175.0150826,
+#  14206.35732,
+#  7.839066572,
+#  337.6445728,
+#  322.4906894,
+#  18.10784209,
+#  58.1817074,
+#  4.196421036], 'rf', fold=0)
 
 def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
     """
@@ -108,7 +130,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="rf"
+        default="bagging"
     )
     parser.add_argument(
         "--data",

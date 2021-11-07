@@ -2,6 +2,7 @@ import os
 from . import config, model_dispatcher
 import time
 import joblib
+import pickle
 import argparse
 import csv
 import json
@@ -12,6 +13,7 @@ from sklearn import metrics
 from sklearn import tree
 from sklearn.impute import SimpleImputer
 from .preprocessing import preprocessing_pipeline
+from .model_dispatcher import BaggingClf, BaggingPrePipeline, Learner
 
 
 def save_file(object, path):
@@ -36,3 +38,12 @@ def save_logs(model_name, fold, accuracy, f1_score, auc):
              round(accuracy, 5),
              round(f1_score, 5),
              round(auc, 5)])
+
+
+class CustomUnpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        try:
+            return super().find_class(__name__, name)
+        except AttributeError:
+            return super().find_class(module, name)
