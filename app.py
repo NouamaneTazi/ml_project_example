@@ -2,7 +2,7 @@ import gradio as gr
 import pandas as pd
 from src import config, predict_one_sample
 
-MODEL_NAME = 'rf'
+MODEL_NAME = 'bagging'
 
 def predict(*args):
     df = pd.DataFrame([args], columns=['ph',
