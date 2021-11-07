@@ -5,6 +5,10 @@
 
 Kaggle: <https://www.kaggle.com/artimule/drinking-water-probability>
 
+## Initialization
+
+Before running the models, you should put your data file (`drinking_water_potability.csv`) in the _data_ folder.
+
 ## Usage
 
 ### Option 1
