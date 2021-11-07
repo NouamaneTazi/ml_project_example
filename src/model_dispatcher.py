@@ -97,7 +97,7 @@ class BaggingClf():
             final_preds.append(model.predict(preds1))
         final_preds = np.column_stack(final_preds)
         final_preds = np.mean(final_preds, axis=1)
-        return final_preds
+        return np.column_stack([1-final_preds, final_preds])
 
     def predict(self, X: np.array):
         """ Predicts class
@@ -105,7 +105,7 @@ class BaggingClf():
         Returns : predicted_class of shape (-1,1) 
         """
         preds_probs = self.predict_proba(X)
-        predicted_class = np.round(preds_probs).astype(int)
+        predicted_class = np.round(preds_probs[:, 1]).astype(int)
         return predicted_class
 
 class BaggingPrePipeline():
