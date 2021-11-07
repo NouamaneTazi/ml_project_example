@@ -44,25 +44,6 @@ def predict_one_sample(sample: np.array, model_name: str, model_path: str = conf
     
     return predicted_classes, pred_probs, pre_pipeline, clf
 
-predict_one_sample([7.273368228,
- 175.0150826,
- 14206.35732,
- 7.839066572,
- 337.6445728,
- 322.4906894,
- 18.10784209,
- 58.1817074,
- 4.196421036], 'bagging', fold=-1)
-# predict_one_sample([7.273368228,
-#  175.0150826,
-#  14206.35732,
-#  7.839066572,
-#  337.6445728,
-#  322.4906894,
-#  18.10784209,
-#  58.1817074,
-#  4.196421036], 'rf', fold=0)
-
 def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
     """
     Generate metrics on test dataset for model :model_path:.
