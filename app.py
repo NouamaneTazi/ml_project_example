@@ -1,3 +1,4 @@
+import time
 import gradio as gr
 import pandas as pd
 from src import config, predict_one_sample
@@ -15,7 +16,9 @@ def predict(*args):
                                     'Trihalomethanes',
                                     'Turbidity']
                     )
+    tik = time.time()
     predicted_class, pred_probs, _, _ = predict_one_sample(args, MODEL_NAME, config.SAVED_MODELS)
+    print("Inference time: ", time.time() - tik)
     df['Potability'] = predicted_class
     return dict(zip(['Not Potable', 'Potable'], pred_probs)), df
 
