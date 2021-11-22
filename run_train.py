@@ -1,3 +1,8 @@
+"""
+trains the models that are defined in src/model_dispatcher.py
+and saves results to logs/results_all_models.csv
+"""
+
 import pandas as pd
 import json
 

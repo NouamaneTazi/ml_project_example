@@ -1,3 +1,10 @@
+""" 
+searches for best params among all models in src/model_dispatcher
+and saves results to logs/results_all_models.csv
+* preprocessing parameters are defined in this file
+* model parameters are defined in src/model_dispatcher.py
+"""
+
 import pandas as pd
 import json
 import itertools

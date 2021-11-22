@@ -1,3 +1,4 @@
+""" gradio app """
 import time
 import gradio as gr
 import pandas as pd
