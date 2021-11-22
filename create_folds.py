@@ -10,7 +10,8 @@ if __name__ == "__main__":
     df = df.sample(frac=1).reset_index(drop=True)
 
     # split train/test
-    df_train, df_test = train_test_split(df, test_size=config.TEST_SIZE, stratify=df["Potability"], random_state=config.RANDOM_STATE)
+    df_train, df_test = train_test_split(
+        df, test_size=config.TEST_SIZE, stratify=df["Potability"], random_state=config.RANDOM_STATE)
     print(df_train.head())
 
     # we create a new column called kfold and fill it with -1
@@ -25,7 +26,8 @@ if __name__ == "__main__":
     df_train = df_train.sample(frac=1).reset_index(drop=True)
 
     # fill the new kfold column
-    for f, (t_, v_) in enumerate(kf.split(X=df_train, y=df_train["Potability"])):
+    for f, (t_, v_) in enumerate(
+            kf.split(X=df_train, y=df_train["Potability"])):
         df_train.loc[v_, 'kfold'] = f
 
     # save the new csvs with kfold column

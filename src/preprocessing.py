@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import IterativeImputer, KNNImputer, SimpleImputer
 
+
 class ModifiedPreprocessingPipeline:
     def __init__(self, missing, pipeline):
         self.missing = missing
@@ -18,7 +19,8 @@ class ModifiedPreprocessingPipeline:
                 X = X.values
             to_keep = ~np.isnan(X).any(axis=1)
             X = X[to_keep, :]
-            if isinstance(y, np.ndarray): y = y[to_keep]
+            if isinstance(y, np.ndarray):
+                y = y[to_keep]
         return self.pipeline.fit_transform(X), y
 
     def transform(self, X, y=None):
@@ -27,7 +29,8 @@ class ModifiedPreprocessingPipeline:
                 X = X.values
             to_keep = ~np.isnan(X).any(axis=1)
             X = X[to_keep, :]
-            if isinstance(y, np.ndarray): y = y[to_keep]
+            if isinstance(y, np.ndarray):
+                y = y[to_keep]
         return self.pipeline.transform(X), y
 
 
@@ -69,12 +72,12 @@ class SolidsLogAdder(BaseEstimator, TransformerMixin):
         else:
             return X
 
+
 class PolyFeaturesAdder(BaseEstimator, TransformerMixin):
     '''Defines a transformer to add the features squared'''
 
     def __init__(self, degree=1):
         self.degree = degree
-        
 
     def fit(self, X, y=None):
         return self
@@ -93,7 +96,12 @@ class PolyFeaturesAdder(BaseEstimator, TransformerMixin):
         else:
             return X
 
-def preprocessing_pipeline(missing="median", scaling="standard", add_Solids_log=False, poly_degree=1):
+
+def preprocessing_pipeline(
+        missing="median",
+        scaling="standard",
+        add_Solids_log=False,
+        poly_degree=1):
     """
     This function's goal is to build a preprocessing pipeline with given preprocessing strategy.
 

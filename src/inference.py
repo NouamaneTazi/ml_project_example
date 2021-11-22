@@ -11,7 +11,13 @@ from .utils import save_logs, CustomUnpickler
 from .evaluate import test
 
 
-def predict_one_sample(sample: np.array, model_name: str, model_path: str = config.SAVED_MODELS, fold: int = -1)-> tuple[np.array, np.array, Any, Any]:
+def predict_one_sample(sample: np.array,
+                       model_name: str,
+                       model_path: str = config.SAVED_MODELS,
+                       fold: int = -1) -> tuple[np.array,
+                                                np.array,
+                                                Any,
+                                                Any]:
     """
     Predict water drinking potability class and probablities from one sample data
     :param sample: array-like of length 9 containing data used for prediction
@@ -21,17 +27,18 @@ def predict_one_sample(sample: np.array, model_name: str, model_path: str = conf
     """
     if not isinstance(sample, (list, tuple, np.ndarray)):
         raise TypeError("sample must be array like")
-    if len(sample)!=9:
+    if len(sample) != 9:
         raise ValueError("Provided sample must be of length: 9")
 
-    x_test = np.array(sample).reshape(1,-1)
+    x_test = np.array(sample).reshape(1, -1)
 
     # fetch preprocessing pipeline and model
     try:
         pre_pipeline = joblib.load(
-            Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"))    
-        clf = joblib.load(Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
-    except:
+            Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"))
+        clf = joblib.load(
+            Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
+    except BaseException:
         with open(Path(f"{model_path}/{model_name}/{model_name}_{fold}_preprocess.pkl"), 'rb') as f:
             pre_pipeline = CustomUnpickler(f).load()
         with open(Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"), 'rb') as f:
@@ -42,8 +49,9 @@ def predict_one_sample(sample: np.array, model_name: str, model_path: str = conf
     # predict
     pred_probs = clf.predict_proba(x_test_processed)[0]
     predicted_classes = np.argmax(pred_probs)
-    
+
     return predicted_classes, pred_probs, pre_pipeline, clf
+
 
 def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
     """
@@ -61,7 +69,8 @@ def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
 
     if fold == -1:
         for fold_k in range(config.NUMBER_FOLDS):
-            results_test = _predict(fold_k, test_data_path, model_name, model_path)
+            results_test = _predict(
+                fold_k, test_data_path, model_name, model_path)
             if fold_k == 0:
                 pred_prob = results_test["predict_prob"]
             else:
@@ -76,12 +85,16 @@ def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
             met["accuracy"] = metrics.accuracy_score(y_test, predicted_classes)
             met["auc"] = metrics.roc_auc_score(y_test, pred_prob)
             met["f1_score"] = metrics.f1_score(y_test, predicted_classes)
-            print(f"Fold=-1, Accuracy={met['accuracy']}, F1-score={met['f1_score']}, AUC={met['auc']}")
+            print(
+                f"Fold=-1, Accuracy={met['accuracy']}, F1-score={met['f1_score']}, AUC={met['auc']}")
             # save logs
-            save_logs(model_name, -1, met["accuracy"], met["f1_score"], met["auc"])
+            save_logs(model_name, -
+                      1, met["accuracy"], met["f1_score"], met["auc"])
             df['Predictions'] = pred_prob
             df['Predicted Potability'] = predicted_classes
-            df.to_csv(f"{config.PREDICTIONS}/{args.model}_submission.csv", index=False)
+            df.to_csv(
+                f"{config.PREDICTIONS}/{args.model}_submission.csv",
+                index=False)
         return {"predict_prob": pred_prob, "metrics": met}
 
     # fetch preprocessing pipeline
@@ -91,19 +104,22 @@ def _predict(fold: int, test_data_path: str, model_name: str, model_path: str):
     x_test_processed = pre_pipeline.transform(x_test)
 
     # fetch model
-    clf = joblib.load(Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
+    clf = joblib.load(
+        Path(f"{model_path}/{model_name}/{model_name}_{fold}.bin"))
 
     # predict
     results = test(x_test_processed, y_test, clf)
     met = results["metrics"]
     if y_test is not None:
-        print(f"Fold={fold}, Accuracy={met['accuracy']}, F1-score={met['f1_score']}, AUC={met['auc']}")
-    
+        print(
+            f"Fold={fold}, Accuracy={met['accuracy']}, F1-score={met['f1_score']}, AUC={met['auc']}")
+
     return results
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Evaluate a model on provided data')
+    parser = argparse.ArgumentParser(
+        description='Evaluate a model on provided data')
     parser.add_argument(
         "--fold",
         type=int,
@@ -123,7 +139,7 @@ if __name__ == "__main__":
     print()
     # save initial test data with new Predictions column
     _predict(fold=args.fold,
-            test_data_path=args.data,
-            model_name=args.model,
-            model_path=config.SAVED_MODELS)
+             test_data_path=args.data,
+             model_name=args.model,
+             model_path=config.SAVED_MODELS)
     print()

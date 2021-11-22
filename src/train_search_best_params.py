@@ -5,7 +5,15 @@ from .utils import save_file
 
 from .preprocessing import preprocessing_pipeline
 
-def preprocess(X, y, model_name, fold=None, preprocess_params=None, save=True, return_pipeline=False):
+
+def preprocess(
+        X,
+        y,
+        model_name,
+        fold=None,
+        preprocess_params=None,
+        save=True,
+        return_pipeline=False):
     """
     This function is used for feature engineering
     :param X: the numpy array with data
@@ -26,14 +34,22 @@ def preprocess(X, y, model_name, fold=None, preprocess_params=None, save=True, r
 
     if save:
         save_file(
-            pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess_search_params.pkl")
+            pre_pipeline,
+            f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess_search_params.pkl")
 
     if return_pipeline:
         return X, y, pre_pipeline
     else:
         return X, y
 
-def search_best_params(fold: int, train_data_path: str, model_name: str, preprocess_params: dict = None, base_model_params: dict = None, search_model_params: dict = None):
+
+def search_best_params(
+        fold: int,
+        train_data_path: str,
+        model_name: str,
+        preprocess_params: dict = None,
+        base_model_params: dict = None,
+        search_model_params: dict = None):
     """
     Search for best params for model :model_name: with a GridSearch, on the indicated fold.
     :param fold: the fold id used for training (-1 for all)
@@ -52,14 +68,27 @@ def search_best_params(fold: int, train_data_path: str, model_name: str, preproc
     X, y = preprocess(X, y, model_name, fold, preprocess_params)
 
     # Instantiate GridSearch
-    clf = model_dispatcher.models[model_name]["model"](**model_dispatcher.models[model_name]["base_model_params"])
+    clf = model_dispatcher.models[model_name]["model"](
+        **model_dispatcher.models[model_name]["base_model_params"])
     if base_model_params:
         clf.set_params(**base_model_params)
-    search_model_params = search_model_params if search_model_params else model_dispatcher.models[model_name]["search_model_params"]
-    gs = GridSearchCV(clf, search_model_params, scoring=('accuracy', 'roc_auc', 'f1'), refit=False, n_jobs=-1, verbose=0)
+    search_model_params = search_model_params if search_model_params else model_dispatcher.models[
+        model_name]["search_model_params"]
+    gs = GridSearchCV(
+        clf,
+        search_model_params,
+        scoring=(
+            'accuracy',
+            'roc_auc',
+            'f1'),
+        refit=False,
+        n_jobs=-1,
+        verbose=0)
 
     # Train and output
     gs.fit(X, y)
     df_results = pd.DataFrame(gs.cv_results_)
-    df.to_csv(f"{config.SEARCH_PARAMS_LOGS_FOLDER}/{model_name}_{fold}.csv", index=False)
+    df.to_csv(
+        f"{config.SEARCH_PARAMS_LOGS_FOLDER}/{model_name}_{fold}.csv",
+        index=False)
     return df_results
