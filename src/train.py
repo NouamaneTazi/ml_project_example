@@ -7,7 +7,15 @@ from .utils import save_file, save_logs
 from sklearn import metrics
 
 
-def preprocess(x_train, y_train, x_valid, y_valid, model_name=None, fold=None, preprocess_params=None, save=True):
+def preprocess(
+        x_train,
+        y_train,
+        x_valid,
+        y_valid,
+        model_name=None,
+        fold=None,
+        preprocess_params=None,
+        save=True):
     """
     This function is used for feature engineering
     :param x_train: the numpy array with train data
@@ -28,10 +36,10 @@ def preprocess(x_train, y_train, x_valid, y_valid, model_name=None, fold=None, p
 
     if save:
         save_file(
-            pre_pipeline, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
+            pre_pipeline,
+            f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}_preprocess.pkl")
 
     return x_train, y_train, x_valid, y_valid
-
 
 
 def train_validate(x_train, y_train, x_valid, y_valid, model):
@@ -54,11 +62,24 @@ def train_validate(x_train, y_train, x_valid, y_valid, model):
     try:
         valid_probs = model.predict_proba(x_valid)
         auc = metrics.roc_auc_score(y_valid, valid_probs[:, 1])
-    except:
+    except BaseException:
         auc = -1
-    return {"model": model, "metrics": {"accuracy": accuracy, "auc": auc, "f1_score": f1_score}}
+    return {
+        "model": model,
+        "metrics": {
+            "accuracy": accuracy,
+            "auc": auc,
+            "f1_score": f1_score}}
 
-def train_save(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, model_params: dict = None):
+
+def train_save(
+        x_train,
+        y_train,
+        x_valid,
+        y_valid,
+        fold: int,
+        model_name: str,
+        model_params: dict = None):
     """
     Train and test :model_name: and save it.
     :param x_train: the numpy array with train data
@@ -71,7 +92,8 @@ def train_save(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, m
     :return: metrics (accuracy, AUC, f1 score)
     """
     # fetch the model from model_dispatcher
-    clf = model_dispatcher.models[model_name]["model"](**model_dispatcher.models[model_name]["base_model_params"])
+    clf = model_dispatcher.models[model_name]["model"](
+        **model_dispatcher.models[model_name]["base_model_params"])
     if model_params:
         clf.set_params(**model_params)
 
@@ -83,11 +105,22 @@ def train_save(x_train, y_train, x_valid, y_valid, fold: int, model_name: str, m
         clf, f"{config.SAVED_MODELS}/{model_name}/{model_name}_{fold}.bin")
 
     # save logs
-    save_logs(model_name, fold, metrics['accuracy'], metrics['f1_score'], metrics['auc'])
+    save_logs(
+        model_name,
+        fold,
+        metrics['accuracy'],
+        metrics['f1_score'],
+        metrics['auc'])
 
     return metrics
 
-def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dict = None, model_params: dict = None):
+
+def run(
+        fold: int,
+        train_data_path: str,
+        model_name: str,
+        preprocess_params: dict = None,
+        model_params: dict = None):
     """
     Preprocess data and fits :model_name: on the rest of folds, and validates on the fold :fold:.
     :param fold: the fold id used for validation
@@ -100,12 +133,17 @@ def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dic
     if fold == -1:
         metrics = {"accuracy": 0, "auc": 0, "f1_score": 0}
         for fold_k in range(config.NUMBER_FOLDS):
-            new_metrics = run(fold=fold_k, train_data_path=train_data_path, model_name=model_name)
-            metrics = {k: v+new_metrics[k] for k,v in metrics.items()}
-        metrics = {k: v/config.NUMBER_FOLDS for k,v in metrics.items()} # TODO: this is not necessarily correct
-        print(f"Avg on all folds, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
+            new_metrics = run(
+                fold=fold_k,
+                train_data_path=train_data_path,
+                model_name=model_name)
+            metrics = {k: v + new_metrics[k] for k, v in metrics.items()}
+        # TODO: this is not necessarily correct
+        metrics = {k: v / config.NUMBER_FOLDS for k, v in metrics.items()}
+        print(
+            f"Avg on all folds, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
         return metrics
-    
+
     # read the training data with folds
     df = pd.read_csv(train_data_path)
 
@@ -124,16 +162,26 @@ def run(fold: int, train_data_path: str, model_name: str, preprocess_params: dic
     y_valid = df_valid.Potability.values
 
     # Preprocess data
-    x_train, y_train, x_valid, y_valid = preprocess(x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params)
+    x_train, y_train, x_valid, y_valid = preprocess(
+        x_train, y_train, x_valid, y_valid, model_name, fold, preprocess_params)
 
-    metrics = train_save(x_train, y_train, x_valid, y_valid, fold, model_name, model_params)
-    print(f"Fold={fold}, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
+    metrics = train_save(
+        x_train,
+        y_train,
+        x_valid,
+        y_valid,
+        fold,
+        model_name,
+        model_params)
+    print(
+        f"Fold={fold}, Accuracy={metrics['accuracy']}, F1-score={metrics['f1_score']}, AUC={metrics['auc']}")
     return metrics
 
 
 if __name__ == "__main__":
     # initialize ArgumentParser class of argparse
-    parser = argparse.ArgumentParser('Train specified model on all fold but specified fold.')
+    parser = argparse.ArgumentParser(
+        'Train specified model on all fold but specified fold.')
     parser.add_argument(
         "--fold",
         type=int,

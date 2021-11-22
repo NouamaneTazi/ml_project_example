@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from sklearn import metrics
 
+
 def test(x_test, y_test, model):
     """
     Test :model:.
@@ -23,9 +24,10 @@ def test(x_test, y_test, model):
 
     return {"predict_prob": pred_probs, "metrics": met}
 
+
 def calculate_metrics(y_true, pred_probs):
     """ calculate metrics (accuracy, AUC, f1 score)
-    :param y_true: 
+    :param y_true:
     :param pred_probs: of shape ()
     """
     met = {}
