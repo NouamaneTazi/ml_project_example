@@ -3,7 +3,7 @@ import gradio as gr
 import pandas as pd
 from src import config, predict_one_sample
 
-MODEL_NAME = 'bagging'
+MODEL_NAME = 'stacking'
 
 def predict(*args):
     df = pd.DataFrame([args], columns=['ph',

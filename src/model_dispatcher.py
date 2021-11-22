@@ -4,7 +4,6 @@ import xgboost as xgb
 import numpy as np
 
 
-# TODO: hyperparameter tuning for each model.
 models = {
     "constant": {
         "model": dummy.DummyClassifier,
@@ -75,7 +74,7 @@ models = {
 }
 
 Learner = namedtuple('Learner', ['pre_pipeline', 'model'])
-class BaggingClf():
+class StackingClf():
     def __init__(self, learners, metalearners):
         self.learners = learners
         self.metalearners = metalearners
@@ -108,7 +107,7 @@ class BaggingClf():
         predicted_class = np.round(preds_probs[:, 1]).astype(int)
         return predicted_class
 
-class BaggingPrePipeline():
+class StackingPrePipeline():
     def __init__():
         pass
     def transform(X):

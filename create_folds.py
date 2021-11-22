@@ -1,7 +1,7 @@
 from src import config
 import pandas as pd
 from sklearn.model_selection import train_test_split, StratifiedKFold
-# TODO: create a separate csv for test
+
 if __name__ == "__main__":
     # Read training data
     df = pd.read_csv(f"./{config.RAW_FILE}")

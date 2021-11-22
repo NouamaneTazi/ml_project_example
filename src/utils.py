@@ -13,7 +13,7 @@ from sklearn import metrics
 from sklearn import tree
 from sklearn.impute import SimpleImputer
 from .preprocessing import preprocessing_pipeline
-from .model_dispatcher import BaggingClf, BaggingPrePipeline, Learner
+from .model_dispatcher import StackingClf, StackingPrePipeline, Learner
 
 
 def save_file(object, path):
