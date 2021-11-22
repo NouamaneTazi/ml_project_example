@@ -6,6 +6,7 @@ colorTo: purple
 sdk: gradio
 app_file: app.py
 pinned: true
+co2_eq_emissions: 128.58673238754272
 ---
 # Drinking Water Potability
 
