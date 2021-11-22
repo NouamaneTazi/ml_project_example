@@ -17,3 +17,6 @@ __pycache__/
 
 # local logs
 scores.local.csv
+
+# code carbon
+codecarbon
